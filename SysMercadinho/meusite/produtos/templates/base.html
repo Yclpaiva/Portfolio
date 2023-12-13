@@ -1,0 +1,27 @@
+<!-- templates/base.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static "produtos/css/styles.css" %}">
+    <title>{% block title %}Título Padrão{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <a href="/"> 
+            <button>Home</button>
+        </a>
+        <a href="/produtos/"> 
+            <button>Produtos</button>
+        </a>
+        <a href="/admin/"> 
+            <button>Admin</button>
+        </a>
+        <h1>{% block header %}Cabeçalho Padrão{% endblock %}</h1>
+    </header>
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>
