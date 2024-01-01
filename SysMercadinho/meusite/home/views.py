@@ -1,9 +1,18 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from produtos.models import Produtos
-# Create your views here.
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt,csrf_protect
+from produtos.models import Produtos
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+from produtos.models import DeducaoHistorico
+import json
 
 
+
+@login_required
 def home(request):
     dados = Produtos.objects.all()
     return render(
@@ -11,25 +20,7 @@ def home(request):
         'home.html',
         {'dados':dados},        
                   )
-    
-'''def deduzir_valor(request, produto_id, quantidade_deduzir):
-    produto = Produtos.objects.get(
-        pk=produto_id
-        )
 
-    # Deduzir a quantidade do produto
-    produto.quantidade -= quantidade_deduzir
-    produto.save()
-
-    return redirect('/')'''
-
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from produtos.models import Produtos
-from django.shortcuts import get_object_or_404
-
-@csrf_exempt
 def deduzir_valor(request):
     if request.method == 'POST':
         try:
@@ -40,13 +31,18 @@ def deduzir_valor(request):
                 produto_id = item.get('id')
                 quantidade_deduzir = item.get('quantidade')
 
-                # Utilize get_object_or_404 para evitar o erro "Produtos matching query does not exist"
                 produto = get_object_or_404(Produtos, id=produto_id)
-                
-                # Verifica se a quantidade a deduzir não ultrapassa a quantidade atual
+
                 if quantidade_deduzir <= produto.quantidade:
                     produto.quantidade -= quantidade_deduzir
                     produto.save()
+
+                    
+                    DeducaoHistorico.objects.create(
+                        usuario=request.user, 
+                        produto=produto,
+                        quantidade_deduzida=quantidade_deduzir
+                    )
                 else:
                     return JsonResponse({'mensagem': 'Quantidade a deduzir é maior que a quantidade disponível.'}, status=400)
 
